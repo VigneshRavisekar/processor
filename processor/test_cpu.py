@@ -165,3 +165,34 @@ async def test_imm_or(dut):
      await Timer(12,"ns")
      dut.rstn.value = 0
      await Timer(100,"ns")
+
+## Normal NOT Operation
+## Eg: not x6 ( x7 <- ~x6)
+@cocotb.test()
+async def test_normal_not(dut):
+
+     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+     dut.rstn.value = 0
+     await Timer(2,"ns")
+     dut.rstn.value = 1
+     dut.instr_mem_inst.mem[0].value = 129
+     dut.cpu_inst.register.mem[1].value = 0xB
+     await Timer(10,"ns")
+     dut.rstn.value = 0
+     await Timer(100,"ns")
+
+
+## Immediate NOT Operation
+## Eg: not Imm ( x7 <- ~imm)
+@cocotb.test()
+async def test_imm_not(dut):
+
+     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+     dut.rstn.value = 0
+     await Timer(2,"ns")
+     dut.rstn.value = 1
+     dut.instr_mem_inst.mem[0].value = 144
+     dut.instr_mem_inst.mem[1].value = 0xAF
+     await Timer(12,"ns")
+     dut.rstn.value = 0
+     await Timer(100,"ns")
