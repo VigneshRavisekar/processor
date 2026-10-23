@@ -64,9 +64,9 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
 
                             end
 
-                            /* OPCODE is 001/010/011 WHERE IT CONTAINS SUBTRACTION/AND/OR (Normal and Immediate Instructions)*/
+                            /* OPCODE is 001/010/011/100 WHERE IT CONTAINS SUBTRACTION/AND/OR/NOT (Normal and Immediate Instructions)*/
 
-                            else if(ip[4:2]==1 || ip[4:2] == 2 || ip[4:2] == 3)
+                            else if(ip[4:2]==1 || ip[4:2] == 2 || ip[4:2] == 3 || ip[4:2] == 4)
                             begin
 
                                 if(ip[1]==0) // Normal Sub/AND/OR
@@ -98,7 +98,7 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                             OPCODE 010 in Fetch_Imm to indicate AND Instruction 
                             OPCODE 011 in Fetch_Imm to indicate OR Instruction
                             trf bit tell next_state*/
-                            if(ip[4:2]==0 || ip[4:2] == 1 || ip[4:2] == 2 || ip[4:2] == 3) 
+                            if(ip[4:2]==0 || ip[4:2] == 1 || ip[4:2] == 2 || ip[4:2] == 3 || ip[4:2] == 4) 
                             begin
                                 if(ip[0] == 0)
                                     next_state = EXECUTE_ALU;
@@ -154,9 +154,10 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
 
                         end
 
-                        else if(ip[4:2] === 3'b001 || ip[4:2] === 3'b010 || ip[4:2] == 3'b011)  /*opcode 3'b001 (SUB) 
+                        else if(ip[4:2] === 3'b001 || ip[4:2] === 3'b010 || ip[4:2] === 3'b011 || ip[4:2] === 3'b100)  /*opcode 3'b001 (SUB) 
                                                                           opcode 3'b010 (AND)     
-                                                                          opcode 3'b011 (OR)      */
+                                                                          opcode 3'b011 (OR)     
+                                                                          opcode 3'b100 (NOT) */
                         begin 
                             if(ip[1] == 0)//Normal Sub or Normal AND or Normal OR
                             begin
