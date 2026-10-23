@@ -69,3 +69,99 @@ async def test_imm_add(dut):
      await Timer(12,"ns")
      dut.rstn.value = 0
      await Timer(100,"ns")
+
+##Normal Subtraction Instruction
+## Eg: sub x2(x7<-x7+x2)
+@cocotb.test()
+async def test_normal_sub(dut):
+
+     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+     dut.rstn.value = 0
+     await Timer(2,"ns")
+     dut.rstn.value = 1
+     dut.instr_mem_inst.mem[0].value = 34
+     dut.cpu_inst.register.mem[7].value = 0xA
+     dut.cpu_inst.register.mem[2].value = 0xA
+     await Timer(10,"ns")
+     dut.rstn.value = 0
+     await Timer(100,"ns")
+
+##Immediate Subtraction Instruction
+## Eg: sub imm(x7<-x7+imm)
+@cocotb.test()
+async def test_imm_sub(dut):
+
+     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+     dut.rstn.value = 0
+     await Timer(2,"ns")
+     dut.rstn.value = 1
+     dut.instr_mem_inst.mem[0].value = 48
+     dut.instr_mem_inst.mem[1].value = 0x10
+     dut.cpu_inst.register.mem[7].value = 0xA
+     await Timer(12,"ns")
+     dut.rstn.value = 0
+     await Timer(100,"ns")
+
+##Normal AND Instruction
+## Eg: and x1(x7<-x7 & x1)
+@cocotb.test()
+async def test_normal_and(dut):
+
+     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+     dut.rstn.value = 0
+     await Timer(2,"ns")
+     dut.rstn.value = 1
+     dut.instr_mem_inst.mem[0].value = 65
+     dut.cpu_inst.register.mem[7].value = 0xB
+     dut.cpu_inst.register.mem[1].value = 0x5
+     await Timer(10,"ns")
+     dut.rstn.value = 0
+     await Timer(100,"ns")
+
+##Immediate AND Instruction
+## Eg: and imm(x7<-x7 & imm)
+@cocotb.test()
+async def test_imm_and(dut):
+
+     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+     dut.rstn.value = 0
+     await Timer(2,"ns")
+     dut.rstn.value = 1
+     dut.instr_mem_inst.mem[0].value = 81
+     dut.instr_mem_inst.mem[1].value = 0x10
+     dut.cpu_inst.register.mem[7].value = 0xB
+     await Timer(12,"ns")
+     dut.rstn.value = 0
+     await Timer(100,"ns")
+
+##Normal OR Instruction
+## Eg: or x1(x7<-x7 & x3)
+@cocotb.test()
+async def test_normal_or(dut):
+
+     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+     dut.rstn.value = 0
+     await Timer(2,"ns")
+     dut.rstn.value = 1
+     dut.instr_mem_inst.mem[0].value = 99
+     dut.cpu_inst.register.mem[7].value = 0xF
+     dut.cpu_inst.register.mem[3].value = 0x2
+     await Timer(10,"ns")
+     dut.rstn.value = 0
+     await Timer(100,"ns")
+
+##Immediate OR Instruction
+## Eg: or imm(x7<-x7 & imm)
+@cocotb.test()
+async def test_imm_or(dut):
+
+     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+     dut.rstn.value = 0
+     await Timer(2,"ns")
+     dut.rstn.value = 1
+     dut.instr_mem_inst.mem[0].value = 115
+     dut.instr_mem_inst.mem[1].value = 0x10
+     dut.cpu_inst.register.mem[7].value = 0xB
+     await Timer(12,"ns")
+     dut.rstn.value = 0
+     await Timer(100,"ns")

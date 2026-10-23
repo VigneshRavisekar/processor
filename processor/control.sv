@@ -64,6 +64,23 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
 
                             end
 
+                            /* OPCODE is 001/010/011 WHERE IT CONTAINS SUBTRACTION/AND/OR (Normal and Immediate Instructions)*/
+
+                            else if(ip[4:2]==1 || ip[4:2] == 2 || ip[4:2] == 3)
+                            begin
+
+                                if(ip[1]==0) // Normal Sub/AND/OR
+                                            next_state = EXECUTE_ALU;
+
+                                else // Immediate Sub/AND/OR
+                                begin
+
+                                        next_state = FETCH_IMM;
+                                        immediate = 1;
+                                end
+                            end
+
+
                             else 
 
                                     next_state = DECODE;
@@ -77,15 +94,18 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                     FETCH_IMM:
                     begin 
                             /* OPCODE 000 in Fetch_Imm to indicate Trf/Add Instruction
+                            OPCODE 001 in Fetch_Imm to indicate Sub Instruction
+                            OPCODE 010 in Fetch_Imm to indicate AND Instruction 
+                            OPCODE 011 in Fetch_Imm to indicate OR Instruction
                             trf bit tell next_state*/
-                            if(ip[4:2]==0) 
+                            if(ip[4:2]==0 || ip[4:2] == 1 || ip[4:2] == 2 || ip[4:2] == 3) 
                             begin
                                 if(ip[0] == 0)
                                     next_state = EXECUTE_ALU;
                                 else
                                     next_state = REGWRITE;
                             end
-
+                          
 
                     end   
                     
@@ -113,7 +133,7 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
 
                     DECODE: begin
 
-                        if(ip[4:2] == 3'b000) //opcode 3'b000 
+                        if(ip[4:2] == 3'b000) //opcode 3'b000 (ADD and TRF)
                         begin
                             isFetchImm = 1'b0;
                             if(ip[1:0] == 2'b00) // Imm = 0 Trf = 0
@@ -133,6 +153,27 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                                     {isTrf, isRegWr, isOp, isImm} = 4'b0000;
 
                         end
+
+                        else if(ip[4:2] === 3'b001 || ip[4:2] === 3'b010 || ip[4:2] == 3'b011)  /*opcode 3'b001 (SUB) 
+                                                                          opcode 3'b010 (AND)     
+                                                                          opcode 3'b011 (OR)      */
+                        begin 
+                            if(ip[1] == 0)//Normal Sub or Normal AND or Normal OR
+                            begin
+
+                                    opcode = ip[4:2];
+                              
+                            end
+                            
+                            else
+                            begin 
+                                    opcode = ip[4:2];
+                                    
+                            end 
+                            
+                        end 
+
+                        
                     
                     end
 
@@ -147,10 +188,10 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                         /* EXECUTE_ALU based on several field bits we decide which control
                         signals should be triggered(based on immediate signal)
                         
-                            1. If addition is immediate then in FETCH_IMM it will store the fielder bits
+                            1. If addition/sub/and/or is immediate then in FETCH_IMM it will store the fielder bits
                                into seperate reg named fielder
 
-                            2. if addition is normal then it look directly into ip[1:0]
+                            2. if addition/sub/and/or is normal then it look directly into ip[1:0]
 
                                */
                         if(immediate==1)
@@ -182,7 +223,7 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                        
                         if(immediate == 1)
                         begin
-                            if (fielder == 2'b11) // Imm = 1; Trf = 0
+                            if (fielder == 2'b11) // Imm = 1; Trf = 1
                             begin
                                 {isTrf, isRegWr, isOp, isImm} = 4'b1111;
                                 isFetchImm = 1'b1;
@@ -196,7 +237,7 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                         else
                         begin
                             if(ip[0]==0) //Not a Trf 
-                                {isTrf, isRegWr, isOp, isImm} = 4'b0111;
+                                {isTrf, isRegWr, isOp, isImm} = 4'b0110;
                             else
                                 {isTrf, isRegWr, isOp, isImm} = 4'b1110;
 
