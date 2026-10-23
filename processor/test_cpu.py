@@ -7,7 +7,7 @@ from cocotb.clock import Clock
 # Eg: trf x2 x2 <- x7
 
 @cocotb.test()
-async def test_transfer(dut):
+async def test_trf(dut):
 
     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
     dut.rstn.value = 0
@@ -25,7 +25,7 @@ async def test_transfer(dut):
 # Eg: trf #10 x7 <- 0x10
 
 @cocotb.test()
-async def test_transfer_imm(dut):
+async def test_imm_trf(dut):
 
     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
     dut.rstn.value = 0
@@ -193,6 +193,43 @@ async def test_imm_not(dut):
      dut.rstn.value = 1
      dut.instr_mem_inst.mem[0].value = 144
      dut.instr_mem_inst.mem[1].value = 0xAF
+     await Timer(12,"ns")
+     dut.rstn.value = 0
+     await Timer(100,"ns")
+
+
+## Normal CMP Instruction
+## Eg: Unsigned or Signed cmp x5 (x7 compare x5)
+@cocotb.test()
+async def test_normal_cmp(dut):
+
+     
+     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+     dut.rstn.value = 0
+     await Timer(2,"ns")
+     dut.rstn.value = 1
+     # dut.instr_mem_inst.mem[0].value = 165
+     dut.instr_mem_inst.mem[0].value = 173
+     dut.cpu_inst.register.mem[7].value = -9
+     dut.cpu_inst.register.mem[5].value = -8
+     await Timer(10,"ns")
+     dut.rstn.value = 0
+     await Timer(100,"ns")
+
+## Immediate CMP Instruction
+## Eg: Unsigned or Signed cmp imm (x7 compare imm)
+@cocotb.test()
+async def test_imm_cmp(dut):
+
+     
+     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+     dut.rstn.value = 0
+     await Timer(2,"ns")
+     dut.rstn.value = 1
+     # dut.instr_mem_inst.mem[0].value = 176
+     dut.instr_mem_inst.mem[0].value = 184
+     dut.instr_mem_inst.mem[1].value = -9
+     dut.cpu_inst.register.mem[7].value = -8
      await Timer(12,"ns")
      dut.rstn.value = 0
      await Timer(100,"ns")
