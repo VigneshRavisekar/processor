@@ -4,12 +4,14 @@ module cpu(input logic clk,rstn,input logic [7:0] instr,input logic [15:0] pc, o
                 logic [2:0] reg_w_addr;
                 logic [7:0] reg_w_data;
                 logic [7:0] reg_r_data1,reg_r_data2;
-                logic isTrf,isRegWr,isOp,isFetchImm,isImm,isALU;
+                logic isTrf,isRegWr,isOp,isFetchImm,isImm,isALU,isCmp;
                 logic [1:0] addr_select, data_select;
                 logic [15:0] temp_pc;
                 logic [2:0] opcode;
                 logic [7:0] op1,op2,alu_result;
-                logic [7:0] w_dat_1;
+                logic [7:0] w_dat_1,temp_reg,temp_alu_result;
+                logic [1:0] flag_reg;
+                logic sign_flag;
 
              
 
@@ -17,8 +19,8 @@ module cpu(input logic clk,rstn,input logic [7:0] instr,input logic [15:0] pc, o
     
                 
                 reg_file register(.RA1(3'b111),.RA2(instr[2:0]),.WA(reg_w_addr),.WD(reg_w_data),.WE(isRegWr),.clk(clk),.RD1(reg_r_data1),.RD2(reg_r_data2));
-                control  control(.clk(clk),.rstn(rstn),.ip(instr[7:3]),.opcode(opcode),.isTrf(isTrf),.isRegWr(isRegWr),.isOp(isOp),.isFetchImm(isFetchImm),.isImm(isImm),.isALU(isALU)); 
-                alu      alu(.op1(op1),.op2(op2),.opcode(opcode),.alu_result(alu_result));
+                control  control(.clk(clk),.rstn(rstn),.ip(instr[7:3]),.opcode(opcode),.isTrf(isTrf),.isRegWr(isRegWr),.isOp(isOp),.isFetchImm(isFetchImm),.isImm(isImm),.isALU(isALU),.isCmp(isCmp),.sign_flag(sign_flag)); 
+                alu      alu(.op1(op1),.op2(op2),.opcode(opcode),.alu_result(temp_alu_result));
                
                      
                 assign next_pc = temp_pc;
@@ -31,6 +33,13 @@ module cpu(input logic clk,rstn,input logic [7:0] instr,input logic [15:0] pc, o
                 assign op2 = (isImm)? instr[7:0] : reg_r_data2;
 
 
+                always_comb begin
+
+                        if(isCmp)
+                                temp_reg = temp_alu_result;
+                        else
+                                alu_result = temp_alu_result;
+                end 
                 
 
                 always_comb begin
@@ -55,6 +64,41 @@ module cpu(input logic clk,rstn,input logic [7:0] instr,input logic [15:0] pc, o
                     
                             
                 end
+
+                always_latch begin
+
+                        if(sign_flag == 0)
+                        begin 
+                                if(temp_reg == 0)
+                                        flag_reg = 2;
+                                
+                                else if($signed(temp_reg) > 0)
+                                        
+                                        flag_reg = 1;
+                                
+                                else
+                                        flag_reg = 0;
+                                
+                        end 
+
+                        else
+                        begin
+                                if(temp_reg == 0)
+                                        flag_reg = 2;
+                                
+                                else if($signed(temp_reg) < 0)
+                                        
+                                        flag_reg = 0;
+                                else
+                                        flag_reg = 1;
+
+                        end 
+                                
+
+                end
+
+
+
                 
                 always_latch begin 
 
