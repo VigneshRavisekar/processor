@@ -1,8 +1,8 @@
-module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] opcode, output logic isTrf,isRegWr,isOp,isFetchImm,isImm,isALU,isCmp,sign_flag);
+module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] opcode, output logic isTrf,isRegWr,isOp,isFetchImm,isImm,isALU,isCmp,isStr,isLd,isMemSel,isMemWrite,sign_flag);
 
             
 
-            typedef enum logic [3:0] {RESET = 0, FETCH = 1, DECODE = 2, FETCH_IMM = 3, EXECUTE_ALU = 4, UPDATE_FLAG=5, REGWRITE = 6} states_t;
+            typedef enum logic [3:0] {RESET = 0, FETCH = 1, DECODE = 2, FETCH_IMM = 3, EXECUTE_ALU = 4,UPDATE_FLAG=5, REGWRITE = 6,EXECUTE_MEM = 7} states_t;
             states_t state,next_state;
 
             logic [1:0] fielder;
@@ -79,6 +79,14 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                                         immediate = 1;
                                 end
                             end
+                            
+                            /* OPCODE is 110 WHERE IT CONTAINS MEMORY STORE AND LOAD OPERATIONS*/
+                            else if(ip[4:2] == 6) 
+                            begin
+
+                                            next_state = EXECUTE_MEM;
+                                     
+                            end
 
 
                             else 
@@ -87,7 +95,7 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                             
                         end
 
-                    EXECUTE_ALU:
+                    EXECUTE_ALU: begin 
 
                                 if(immediate == 0)
                                 begin
@@ -104,6 +112,14 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                                     else
                                         next_state = REGWRITE;
                                 end
+                    end 
+                    EXECUTE_MEM: begin
+
+                                    if(ip[1] == 1) // Store Operation
+                                        next_state = FETCH;
+                                    else
+                                        next_state = REGWRITE;
+                    end 
                     
                     UPDATE_FLAG:
 
@@ -134,7 +150,7 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                     end   
                     
                     REGWRITE:
-
+                               
                                next_state = FETCH;
                 endcase
                     
@@ -155,6 +171,10 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                         isALU   = 1'b0;
                         immediate = 1'b0;
                         isCmp = 1'b0;
+                        isMemSel = 1'b0;
+                        isStr    = 1'b0;
+                        isLd     = 1'b0;
+                        isMemWrite = 1'b0;
                     end
 
                     DECODE: begin
@@ -208,6 +228,20 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                             
                         end 
 
+                        else if(ip[4:2] == 3'b110) // opcode 3'b110 Memory (LoaD,STore)
+                        begin 
+                            if(ip[1] == 1)
+                            begin
+                                isMemSel = 1;
+                                {isStr,isLd} = 2'b10;
+                            end
+                            else
+                            begin
+                                isMemSel = 1;
+                                {isStr,isLd} = 2'b00; 
+                            end 
+                        end
+
                         
                     
                     end
@@ -251,6 +285,19 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                         
                     end
 
+                    EXECUTE_MEM:
+                            begin
+                                if(ip[1] == 1) //Store
+                                begin
+                                    isMemWrite = 1;
+                                    isOp       = 1;
+                                end 
+                                else 
+                                    isLd = 1;
+
+
+                            end
+
                     UPDATE_FLAG:
                             begin
                                 isCmp = 1;
@@ -280,6 +327,11 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                         begin
                             if(ip[0]==0) //Not a Trf 
                                 {isTrf, isRegWr, isOp, isImm} = 4'b0110;
+                            else if(ip[1]==0) // Memory Load
+                                begin 
+                                        isRegWr = 1;
+                                        isOp    = 1; 
+                                end
                             else
                                 {isTrf, isRegWr, isOp, isImm} = 4'b1110;
 
