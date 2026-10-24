@@ -233,3 +233,38 @@ async def test_imm_cmp(dut):
      await Timer(12,"ns")
      dut.rstn.value = 0
      await Timer(100,"ns")
+
+## Memory Store Instruction
+## Eg: st[x6]
+
+@cocotb.test()
+async def test_store(dut):
+  
+     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+     dut.rstn.value = 0
+     await Timer(2,"ns")
+     dut.rstn.value = 1
+     dut.instr_mem_inst.mem[0].value = 214
+     dut.cpu_inst.register.mem[6].value  = 0x10
+     dut.cpu_inst.register.mem[7].value  = 0xFA
+     await Timer(10,"ns")
+     dut.rstn.value = 0
+     await Timer(100,"ns")
+
+
+## Memory Load Instruction
+## Eg: ld[x6]
+
+@cocotb.test()
+async def test_load(dut):
+  
+     cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+     dut.rstn.value = 0
+     await Timer(2,"ns")
+     dut.rstn.value = 1
+     dut.instr_mem_inst.mem[0].value = 198
+     dut.cpu_inst.register.mem[6].value  = 0x10
+     dut.data_mem_inst.mem[0x10].value = 0xAF
+     await Timer(10,"ns")
+     dut.rstn.value = 0
+     await Timer(100,"ns")
