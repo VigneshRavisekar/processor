@@ -4,14 +4,15 @@ module cpu(input logic clk,rstn,input logic [7:0] instr,m_r_data,input logic [15
                 logic [2:0] reg_w_addr;
                 logic [7:0] reg_w_data;
                 logic [7:0] reg_r_data1,reg_r_data2;
-                logic isTrf,isRegWr,isOp,isFetchImm,isImm,isALU,isCmp,isStr,isLd,isMemSel,isBranch;
+                logic isTrf,isRegWr,isOp,isFetchImm,isImm,isALU,isCmp,isStr,isLd,isMemSel,isBranch,isUCB,isBeq,isBgt;
                 logic [1:0] addr_select, data_select;
-                logic [15:0] temp_pc;
+                logic [15:0] temp_pc,temp_branch_pc;
+                logic signed [15:0] extend_offset;
                 logic [2:0] opcode;
-                logic [7:0] op1,op2,alu_result;
+                logic [7:0] op1,op2,alu_result,offset;
                 logic [7:0] w_dat_1,temp_reg,temp_rdata2,temp_alu_result,temp_reg_w_addr,temp_reg_w_data;
                 logic [1:0] flag_reg;
-                logic sign_flag;
+                logic sign_flag,conditional_select;
 
              
 
@@ -19,13 +20,13 @@ module cpu(input logic clk,rstn,input logic [7:0] instr,m_r_data,input logic [15
     
                 
                 reg_file register(.RA1(3'b111),.RA2(instr[2:0]),.WA(reg_w_addr),.WD(reg_w_data),.WE(isRegWr),.clk(clk),.RD1(reg_r_data1),.RD2(reg_r_data2));
-                control  control(.clk(clk),.rstn(rstn),.ip(instr[7:3]),.opcode(opcode),.isTrf(isTrf),.isRegWr(isRegWr),.isOp(isOp),.isFetchImm(isFetchImm),.isImm(isImm),.isALU(isALU),.isCmp(isCmp),.isStr(isStr),.isLd(isLd),.isMemSel(isMemSel),.isMemWrite(isMemWrite),.sign_flag(sign_flag)); 
+                control  control(.clk(clk),.rstn(rstn),.ip(instr[7:3]),.opcode(opcode),.isTrf(isTrf),.isRegWr(isRegWr),.isOp(isOp),.isFetchImm(isFetchImm),.isImm(isImm),.isALU(isALU),.isCmp(isCmp),.isStr(isStr),.isLd(isLd),.isBranch(isBranch),.isUCB(isUCB),.isBeq(isBeq),.isBgt(isBgt),.isMemSel(isMemSel),.isMemWrite(isMemWrite),.sign_flag(sign_flag)); 
                 alu      alu(.op1(op1),.op2(op2),.opcode(opcode),.alu_result(temp_alu_result));
               
                
                      
                 assign next_pc = temp_pc;
-                assign isBranch = 0; // for memory operations
+             
 
 
 
@@ -47,7 +48,7 @@ module cpu(input logic clk,rstn,input logic [7:0] instr,m_r_data,input logic [15
 
                                 2'b00: temp_rdata2 = reg_r_data2;
                                 2'b01: m_addr      = reg_r_data2;
-                                // 2'b10:  BRANCH 
+                                2'b10: offset      = reg_r_data2;
                                 // 2'b11:
                         endcase
                 end
@@ -132,9 +133,16 @@ module cpu(input logic clk,rstn,input logic [7:0] instr,m_r_data,input logic [15
                                 temp_reg_w_data <= w_dat_1;
                 end
                 
-            
+                assign extend_offset = {{8{offset[7]}}, offset};
+                // Branching Unit
 
-                assign temp_pc = (isFetchImm) ? pc + 16'd1 : (isOp) ? pc + 16'd1 : pc;
+                // assign conditional_select = OR(AND(isBeq,flag_reg[1]),AND(isBgt,flag_reg[0]));
+                assign conditional_select = (isBeq &flag_reg[1]) | (isBgt & flag_reg[0]);
+
+
+                assign temp_branch_pc = (isUCB) ? pc + extend_offset :(conditional_select) ? pc + extend_offset : pc + 16'd1;
+
+                assign temp_pc = (isFetchImm) ? pc + 16'd1 : (isOp) ? temp_branch_pc : pc;
                 
           
 

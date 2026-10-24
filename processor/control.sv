@@ -1,8 +1,8 @@
-module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] opcode, output logic isTrf,isRegWr,isOp,isFetchImm,isImm,isALU,isCmp,isStr,isLd,isMemSel,isMemWrite,sign_flag);
+module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] opcode, output logic isTrf,isRegWr,isOp,isFetchImm,isImm,isALU,isCmp,isStr,isLd,isMemSel,isMemWrite,isBranch,isUCB,isBeq,isBgt,sign_flag);
 
             
 
-            typedef enum logic [3:0] {RESET = 0, FETCH = 1, DECODE = 2, FETCH_IMM = 3, EXECUTE_ALU = 4,UPDATE_FLAG=5, REGWRITE = 6,EXECUTE_MEM = 7} states_t;
+            typedef enum logic [3:0] {RESET = 0, FETCH = 1, DECODE = 2, FETCH_IMM = 3, EXECUTE_ALU = 4,UPDATE_FLAG=5, REGWRITE = 6,EXECUTE_MEM = 7,EXECUTE_BRANCH = 8} states_t;
             states_t state,next_state;
 
             logic [1:0] fielder;
@@ -88,6 +88,13 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                                      
                             end
 
+                            /* OPCODE is 111 WHERE IT CONTAINS BRANCHING INSTRUCTIONS*/
+                            else if(ip[4:2] == 7)
+                            begin
+                                           next_state = EXECUTE_BRANCH;
+
+                            end
+
 
                             else 
 
@@ -120,6 +127,12 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
                                     else
                                         next_state = REGWRITE;
                     end 
+
+                    EXECUTE_BRANCH: 
+
+                                next_state = FETCH;
+
+            
                     
                     UPDATE_FLAG:
 
@@ -167,14 +180,18 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
 
                     FETCH: begin
                         {isTrf, isRegWr, isOp, isImm} = 4'b0000;
-                        isFetchImm = 1'b0;
-                        isALU   = 1'b0;
-                        immediate = 1'b0;
-                        isCmp = 1'b0;
-                        isMemSel = 1'b0;
-                        isStr    = 1'b0;
-                        isLd     = 1'b0;
-                        isMemWrite = 1'b0;
+                        isFetchImm                    = 1'b0;
+                        isALU                         = 1'b0;
+                        immediate                     = 1'b0;
+                        isCmp                         = 1'b0;
+                        isMemSel                      = 1'b0;
+                        isStr                         = 1'b0;
+                        isLd                          = 1'b0;
+                        isMemWrite                    = 1'b0;
+                        isBranch                      = 1'b0;
+                        isUCB                         = 1'b0;
+                        isBeq                         = 1'b0;
+                        isBgt                         = 1'b0;
                     end
 
                     DECODE: begin
@@ -297,6 +314,24 @@ module control(input logic clk,rstn, input logic [4:0] ip, output logic [2:0] op
 
 
                             end
+
+                    EXECUTE_BRANCH:
+                    begin   
+                            if(ip[1] == 1)
+                            begin
+                                {isBranch,isUCB} = 3;
+                                isOp   = 1;
+                            end
+                            else
+                            begin
+                                 {isBranch,isUCB} = 2;
+                                 if(ip[0] == 1)
+                                    isBeq = 1;
+                                 else
+                                    isBgt = 1;
+                                 isOp = 1;
+                            end
+                    end    
 
                     UPDATE_FLAG:
                             begin
