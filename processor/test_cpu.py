@@ -268,3 +268,38 @@ async def test_load(dut):
      await Timer(10,"ns")
      dut.rstn.value = 0
      await Timer(100,"ns")
+
+## Unconditional Branching Instruction
+## Eg: b .loop
+@cocotb.test()
+async def test_uc_branch(dut):
+        
+        cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+        dut.rstn.value = 0
+        await Timer(2,"ns")
+        dut.rstn.value = 1
+        dut.instr_mem_inst.mem[0].value     = 0xF2
+        dut.cpu_inst.register.mem[2].value  = -0x5 
+        await Timer(10,"ns")
+        dut.rstn.value = 0
+        await Timer(100,"ns")
+
+## Conditional Branching Instruction
+## Eg: beq .loop
+@cocotb.test()
+async def test_ce_branch(dut):
+        
+        cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+        dut.rstn.value = 0
+        await Timer(2,"ns")
+        dut.rstn.value = 1
+        dut.instr_mem_inst.mem[0].value     =  0x18
+        dut.instr_mem_inst.mem[1].value     =  0x20
+        dut.instr_mem_inst.mem[2].value     =  0xB0
+        dut.instr_mem_inst.mem[3].value     =  0x10
+        dut.instr_mem_inst.mem[4].value     =  0x18
+        dut.instr_mem_inst.mem[5].value     =  0x05
+        dut.instr_mem_inst.mem[6].value     =  0x09
+     #    dut.instr_mem_inst.mem[7].value     =  0xE9
+        dut.instr_mem_inst.mem[7].value     =  0xE1
+        await Timer(100,"ns")
