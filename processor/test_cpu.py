@@ -1,5 +1,5 @@
 import cocotb
-from cocotb.triggers import Timer, RisingEdge, FallingEdge,ClockCycles
+from cocotb.triggers import Timer, RisingEdge, FallingEdge,ClockCycles,ReadOnly
 from cocotb.clock import Clock
 
 
@@ -303,3 +303,21 @@ async def test_ce_branch(dut):
      #    dut.instr_mem_inst.mem[7].value     =  0xE9
         dut.instr_mem_inst.mem[7].value     =  0xE1
         await Timer(100,"ns")
+
+
+with open("asm/first.hex", "r") as file:
+      instructions = file.readlines()
+
+### Checking with assembly loading 
+@cocotb.test()
+async def assembly_load(dut):
+
+      cocotb.start_soon(Clock(dut.clk,2,"ns").start())
+      dut.rstn.value = 0
+      await Timer(2,"ns")
+      dut.rstn.value = 1
+      for i in range(len(instructions)):
+          instruction = int(instructions[i].strip(), 16)
+          dut.instr_mem_inst.mem[i].value     =  instruction
+     
+      await Timer(100,"ns")
