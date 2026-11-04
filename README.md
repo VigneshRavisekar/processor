@@ -100,7 +100,7 @@ This is the proposed ISA compact one which can handle 18 instructions with each 
 
 | Opcode | UC | E | Source register | Assembly | Meaning |
 | --- | --- | --- | --- | --- | --- |
-| `111` | 1 | \_ | Xn | `b loop` | Unconditional branch |
+| `111` | 1 | \_ | Reserved | `b loop` | Unconditional branch |
 | `111` | 0 | 1 | Xn | `beq loop` | Conditional branch: equal |
 | `111` | 0 | 0 | Xn | `bgt loop` | Conditional branch: greater-than |
 
