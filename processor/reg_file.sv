@@ -14,12 +14,12 @@ module reg_file(input logic [2:0] RA1,RA2,WA, input logic [7:0] WD, input logic 
             wire [7:0] reg_mem7 = mem[7];
                       
             assign RD1 = mem[RA1];
-            assign RD2 = (!WE) ? mem[RA2] : 8'hz;
+            assign RD2 = mem[RA2];
             
-            always@(negedge clk or posedge WE)
+            always@(posedge clk)
             begin
                 if(WE)
-                    mem[WA] = WD;
+                    mem[WA] <= WD;
             end
 
 endmodule
